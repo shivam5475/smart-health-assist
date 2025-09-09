@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMART Health Assist: Interactive Overview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Health Tech -->
+    <!-- Application Structure Plan: The SPA is designed as a thematic, narrative-driven dashboard rather than a linear report. This structure (Hero > Problem > Solution > Technology > Impact > Future) tells a story, making the information more engaging for stakeholders like investors or reviewers. A sticky navigation allows non-linear exploration, catering to users who may only be interested in specific facets like impact metrics or technology. This user-centric design prioritizes clarity and engagement over rigidly following the source document's order, making the project's value proposition immediately apparent. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Expected Outcomes -> Goal: Inform/Impress -> Viz: Dynamic Counters -> Interaction: Animate on scroll -> Justification: More engaging than static text -> Library: Vanilla JS.
+        - Report Info: Proposed Architecture -> Goal: Organize/Explain -> Viz: Interactive HTML/CSS Diagram -> Interaction: Hover to highlight and show tooltips -> Justification: Transforms a static flowchart into an exploratory tool -> Library: HTML/CSS/JS.
+        - Report Info: Evaluation Parameters -> Goal: Compare/Inform -> Viz: Radar Chart -> Interaction: Tooltips on data points -> Justification: Provides a holistic, at-a-glance view of all key performance indicators -> Library: Chart.js.
+        - Report Info: Future Work -> Goal: Show Progression -> Viz: Vertical CSS Timeline -> Interaction: Animate on scroll -> Justification: More visually compelling for a roadmap than a bulleted list -> Library: HTML/CSS/JS.
+        - CONFIRMATION: NO SVG/Mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa; 
+            color: #343a40;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .nav-link {
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #007bff;
+        }
+        .stat-card, .feature-card, .tech-card, .timeline-item {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .stat-card:hover, .feature-card:hover, .tech-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .flowchart-node {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .flowchart-node:hover {
+            background-color: #e2e8f0;
+            border-color: #007bff;
+        }
+        .flowchart-arrow {
+            position: absolute;
+            background-color: #6c757d;
+            z-index: 0;
+        }
+        .flowchart-arrow.right {
+            height: 2px;
+        }
+        .flowchart-arrow.down {
+            width: 2px;
+        }
+        .flowchart-arrow::after {
+            content: '';
+            position: absolute;
+            border-style: solid;
+        }
+        .flowchart-arrow.right::after {
+            border-width: 6px 0 6px 8px;
+            border-color: transparent transparent transparent #6c757d;
+            right: -8px;
+            top: -5px;
+        }
+        .flowchart-arrow.down::after {
+            border-width: 8px 6px 0 6px;
+            border-color: #6c757d transparent transparent transparent;
+            bottom: -8px;
+            left: -5px;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header id="home" class="bg-white shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-gray-800">SMART Health Assist</h1>
+            <div class="hidden md:flex space-x-6">
+                <a href="#problem" class="nav-link text-gray-600">The Problem</a>
+                <a href="#solution" class="nav-link text-gray-600">The Solution</a>
+                <a href="#technology" class="nav-link text-gray-600">Technology</a>
+                <a href="#impact" class="nav-link text-gray-600">Impact</a>
+                <a href="#future" class="nav-link text-gray-600">Future Work</a>
+            </div>
+            <div class="md:hidden">
+                <button id="menu-btn" class="text-gray-600 focus:outline-none">
+                    <div class="w-6 h-0.5 bg-gray-600 mb-1"></div>
+                    <div class="w-6 h-0.5 bg-gray-600 mb-1"></div>
+                    <div class="w-6 h-0.5 bg-gray-600"></div>
+                </button>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-3">
+            <a href="#problem" class="block py-2 nav-link text-gray-600">The Problem</a>
+            <a href="#solution" class="block py-2 nav-link text-gray-600">The Solution</a>
+            <a href="#technology" class="block py-2 nav-link text-gray-600">Technology</a>
+            <a href="#impact" class="block py-2 nav-link text-gray-600">Impact</a>
+            <a href="#future" class="block py-2 nav-link text-gray-600">Future Work</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="bg-white py-20 lg:py-32">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">AI-Driven Healthcare for Rural Communities</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto mb-12">Bridging the gap in emergency diagnosis, appointment scheduling, and mental health support for underserved populations through accessible technology.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
+                    <div class="stat-card bg-gray-50 p-6 rounded-lg shadow-sm">
+                        <h3 class="text-4xl font-bold text-blue-600" data-target="80">0</h3>
+                        <p class="text-gray-500 mt-2">Diagnostic Accuracy Target (%)</p>
+                    </div>
+                    <div class="stat-card bg-gray-50 p-6 rounded-lg shadow-sm">
+                        <h3 class="text-4xl font-bold text-blue-600" data-target="95">0</h3>
+                        <p class="text-gray-500 mt-2">Appointment Booking Success (%)</p>
+                    </div>
+                    <div class="stat-card bg-gray-50 p-6 rounded-lg shadow-sm">
+                         <h3 class="text-4xl font-bold text-blue-600" data-target="2">0</h3>
+                        <p class="text-gray-500 mt-2">Response Time Target (&lt; sec)</p>
+                    </div>
+                    <div class="stat-card bg-gray-50 p-6 rounded-lg shadow-sm">
+                        <h3 class="text-4xl font-bold text-blue-600" data-target="4">0</h3>
+                        <p class="text-gray-500 mt-2">User Satisfaction Target (≥ /5)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="problem" class="py-20">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-800">The Healthcare Challenge in Rural Areas</h2>
+                    <p class="text-md text-gray-600 mt-4 max-w-2xl mx-auto">Rural populations face significant barriers to accessing timely and effective healthcare. Our solution directly addresses these critical gaps.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="feature-card bg-white p-6 rounded-lg border border-gray-200">
+                        <h3 class="text-xl font-semibold text-gray-800">Distance & Infrastructure</h3>
+                        <p class="mt-2 text-gray-600">Long travel times and a lack of facilities delay crucial medical attention.</p>
+                    </div>
+                    <div class="feature-card bg-white p-6 rounded-lg border border-gray-200">
+                        <h3 class="text-xl font-semibold text-gray-800">Shortage of Professionals</h3>
+                        <p class="mt-2 text-gray-600">Fewer doctors and specialists mean limited access to expert care.</p>
+                    </div>
+                    <div class="feature-card bg-white p-6 rounded-lg border border-gray-200">
+                        <h3 class="text-xl font-semibold text-gray-800">Delayed Critical Care</h3>
+                        <p class="mt-2 text-gray-600">Delays in emergency diagnosis and treatment lead to poorer health outcomes.</p>
+                    </div>
+                    <div class="feature-card bg-white p-6 rounded-lg border border-gray-200">
+                        <h3 class="text-xl font-semibold text-gray-800">Mental Health Stigma</h3>
+                        <p class="mt-2 text-gray-600">Under-diagnosed and under-treated issues due to stigma and lack of resources.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="solution" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-800">An Integrated Solution</h2>
+                    <p class="text-md text-gray-600 mt-4 max-w-2xl mx-auto">SMART Health Assist combines three core services into one lightweight, accessible platform. This section explains how our system works, from user input to the final, unified response.</p>
+                </div>
+
+                <div class="text-center mb-16">
+                    <div class="inline-flex rounded-md shadow-sm" role="group">
+                        <button type="button" class="tab-btn active-tab py-2 px-4 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-l-lg hover:bg-blue-100" data-tab="ai-diagnosis">
+                            AI Diagnosis
+                        </button>
+                        <button type="button" class="tab-btn py-2 px-4 text-sm font-medium text-gray-900 bg-white border-t border-b border-gray-200 hover:bg-gray-100 hover:text-blue-700" data-tab="scheduling">
+                            Appointment Scheduler
+                        </button>
+                        <button type="button" class="tab-btn py-2 px-4 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-r-md hover:bg-gray-100 hover:text-blue-700" data-tab="chatbot">
+                            Mental Health Chatbot
+                        </button>
+                    </div>
+                    <div id="tab-content" class="mt-6 text-left max-w-3xl mx-auto p-6 bg-gray-50 rounded-lg">
+                        <div id="ai-diagnosis" class="tab-pane active">
+                            <h4 class="font-semibold text-xl mb-2 text-gray-800">AI-Powered Preliminary Diagnosis</h4>
+                            <p class="text-gray-600">Utilizes edge-optimized machine learning models to provide rapid, preliminary diagnoses based on user-reported symptoms. The system is designed to work efficiently even on low-bandwidth networks, providing critical information when it's needed most.</p>
+                        </div>
+                        <div id="scheduling" class="tab-pane">
+                            <h4 class="font-semibold text-xl mb-2 text-gray-800">Real-Time Appointment Scheduling</h4>
+                            <p class="text-gray-600">Instantly finds and books available emergency slots at the nearest clinics and hospitals. The system is integrated with real-time facility capacity data, ensuring appointments are confirmed and reliable.</p>
+                        </div>
+                        <div id="chatbot" class="tab-pane">
+                             <h4 class="font-semibold text-xl mb-2 text-gray-800">Empathetic Mental Health Support</h4>
+                            <p class="text-gray-600">Offers a 24/7 conversational chatbot for initial counseling and crisis support. Trained on rural dialects, it provides culturally and linguistically relevant assistance, helping to overcome the stigma associated with seeking mental health care.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="max-w-4xl mx-auto p-8 border rounded-lg">
+                    <h3 class="text-2xl font-bold text-center mb-8 text-gray-800">System Architecture</h3>
+                     <div class="grid grid-cols-3 gap-y-16 gap-x-8 items-center justify-items-center text-center relative">
+                        <div id="user" class="flowchart-node relative z-10 w-40 p-3 bg-white border-2 border-gray-400 rounded-md">User's Mobile Device</div>
+                        <div class="col-start-2"></div>
+                        <div class="col-start-3"></div>
+
+                        <div class="col-start-1 row-start-2"></div>
+                        <div id="frontend" class="flowchart-node relative z-10 w-40 p-3 bg-white border-2 border-gray-400 rounded-md col-start-2 row-start-2">Web Frontend</div>
+                        <div class="col-start-3 row-start-2"></div>
+                        
+                        <div class="col-start-1 row-start-3"></div>
+                        <div id="gateway" class="flowchart-node relative z-10 w-40 p-3 bg-white border-2 border-gray-400 rounded-md col-start-2 row-start-3">API Gateway</div>
+                        <div class="col-start-3 row-start-3"></div>
+
+                        <div id="diag" class="flowchart-node relative z-10 w-40 p-3 bg-white border-2 border-gray-400 rounded-md col-start-1 row-start-4">AI Diagnostic Module</div>
+                        <div id="sched" class="flowchart-node relative z-10 w-40 p-3 bg-white border-2 border-gray-400 rounded-md col-start-2 row-start-4">Appointment Scheduler</div>
+                        <div id="chat" class="flowchart-node relative z-10 w-40 p-3 bg-white border-2 border-gray-400 rounded-md col-start-3 row-start-4">Mental Health Chatbot</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="technology" class="py-20">
+            <div class="container mx-auto px-6">
+                 <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-800">Technology Stack</h2>
+                    <p class="text-md text-gray-600 mt-4 max-w-2xl mx-auto">Built with a modern, scalable, and efficient technology stack chosen specifically for performance in low-resource environments.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="tech-card bg-white p-6 rounded-lg border">
+                        <h3 class="text-xl font-semibold mb-3 text-gray-800">Frontend</h3>
+                        <div class="flex flex-wrap gap-2">
+                           <span class="bg-blue-100 text-blue-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded">React.js</span>
+                           <span class="bg-blue-100 text-blue-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded">Bootstrap</span>
+                        </div>
+                    </div>
+                    <div class="tech-card bg-white p-6 rounded-lg border">
+                        <h3 class="text-xl font-semibold mb-3 text-gray-800">Backend</h3>
+                        <div class="flex flex-wrap gap-2">
+                           <span class="bg-green-100 text-green-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded">Node.js</span>
+                           <span class="bg-green-100 text-green-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded">Express.js</span>
+                           <span class="bg-green-100 text-green-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded">MongoDB</span>
+                        </div>
+                    </div>
+                    <div class="tech-card bg-white p-6 rounded-lg border">
+                        <h3 class="text-xl font-semibold mb-3 text-gray-800">AI & Chatbot</h3>
+                        <div class="flex flex-wrap gap-2">
+                           <span class="bg-purple-100 text-purple-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded">TensorFlow Lite</span>
+                           <span class="bg-purple-100 text-purple-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded">ONNX Runtime</span>
+                            <span class="bg-purple-100 text-purple-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded">Rasa / Dialogflow</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="impact" class="py-20 bg-white">
+             <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-800">Measuring Our Impact</h2>
+                    <p class="text-md text-gray-600 mt-4 max-w-2xl mx-auto">Success is measured by clear, quantifiable evaluation parameters. This chart shows the key performance indicators we are targeting to ensure our solution is effective, reliable, and user-friendly.</p>
+                </div>
+                <div class="bg-gray-50 p-4 sm:p-8 rounded-lg">
+                    <div class="chart-container">
+                        <canvas id="impactChart"></canvas>
+                    </div>
+                </div>
+             </div>
+        </section>
+
+        <section id="future" class="py-20">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-bold text-gray-800">Future Work & Scalability</h2>
+                    <p class="text-md text-gray-600 mt-4 max-w-2xl mx-auto">Our vision extends beyond the initial launch. We have a clear roadmap for enhancing features, improving accessibility, and scaling the solution to new regions.</p>
+                </div>
+                <div class="relative max-w-2xl mx-auto">
+                    <div class="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-gray-300"></div>
+                    <div class="space-y-12">
+                        <div class="timeline-item relative flex items-center">
+                            <div class="w-1/2 pr-8 text-right">
+                                <div class="p-4 bg-white rounded-lg border">
+                                    <h3 class="font-semibold text-gray-800">Pilot Deployment</h3>
+                                    <p class="text-sm text-gray-600">Partner with local clinics for real-world testing and validation.</p>
+                                </div>
+                            </div>
+                            <div class="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-500 rounded-full border-4 border-white"></div>
+                            <div class="w-1/2 pl-8"></div>
+                        </div>
+                        <div class="timeline-item relative flex items-center">
+                            <div class="w-1/2 pr-8"></div>
+                            <div class="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-500 rounded-full border-4 border-white"></div>
+                            <div class="w-1/2 pl-8">
+                                 <div class="p-4 bg-white rounded-lg border">
+                                    <h3 class="font-semibold text-gray-800">Model Enhancement</h3>
+                                    <p class="text-sm text-gray-600">Incorporate image diagnostics (e.g., wound photos).</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-item relative flex items-center">
+                            <div class="w-1/2 pr-8 text-right">
+                                <div class="p-4 bg-white rounded-lg border">
+                                    <h3 class="font-semibold text-gray-800">Full Offline Mode</h3>
+                                    <p class="text-sm text-gray-600">Enhance chatbot via on-device inference for access without internet.</p>
+                                </div>
+                            </div>
+                            <div class="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-500 rounded-full border-4 border-white"></div>
+                            <div class="w-1/2 pl-8"></div>
+                        </div>
+                        <div class="timeline-item relative flex items-center">
+                            <div class="w-1/2 pr-8"></div>
+                            <div class="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-500 rounded-full border-4 border-white"></div>
+                            <div class="w-1/2 pl-8">
+                                <div class="p-4 bg-white rounded-lg border">
+                                    <h3 class="font-semibold text-gray-800">Scale to New Regions</h3>
+                                    <p class="text-sm text-gray-600">Add additional local languages and dialects to expand our reach.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2025 SMART Health Assist. A conceptual project overview.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const menuBtn = document.getElementById('menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            const animateCounters = () => {
+                const counters = document.querySelectorAll('[data-target]');
+                const speed = 200;
+
+                counters.forEach(counter => {
+                    const updateCount = () => {
+                        const target = +counter.getAttribute('data-target');
+                        const count = +counter.innerText;
+                        const inc = target / speed;
+
+                        if (count < target) {
+                            counter.innerText = Math.ceil(count + inc);
+                            setTimeout(updateCount, 1);
+                        } else {
+                            counter.innerText = target;
+                        }
+                    };
+                    updateCount();
+                });
+            };
+
+            const observerOptions = {
+                root: null,
+                threshold: 0.1
+            };
+            
+            const observerCallback = (entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (entry.target.hasAttribute('data-target')) {
+                           animateCounters();
+                           observer.unobserve(entry.target.parentElement.parentElement);
+                        }
+                    }
+                });
+            };
+
+            const counterObserver = new IntersectionObserver(observerCallback, observerOptions);
+            const counterSection = document.querySelector('.stat-card');
+            if (counterSection) {
+                 counterObserver.observe(counterSection);
+            }
+
+            const ctx = document.getElementById('impactChart');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: [
+                            'Diagnostic Accuracy (%)', 
+                            'Booking Success (%)', 
+                            'User Satisfaction (x10 %)', 
+                            'Response Time (inverted)'
+                        ],
+                        datasets: [{
+                            label: 'Target Performance Metrics',
+                            data: [80, 95, 80, 90],
+                            fill: true,
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgb(54, 162, 235)',
+                            pointBackgroundColor: 'rgb(54, 162, 235)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgb(54, 162, 235)'
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                angleLines: {
+                                    display: true
+                                },
+                                suggestedMin: 0,
+                                suggestedMax: 100,
+                                ticks: {
+                                    backdropColor: 'rgba(255, 255, 255, 0.75)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        let value = context.raw;
+                                        if(context.label === 'User Satisfaction (x10 %)') {
+                                           label = 'User Sat. (Score)';
+                                           value = value/20;
+                                        } else if (context.label === 'Response Time (inverted)') {
+                                            label = 'Resp. Time (<s)';
+                                            value = 2;
+                                        } else {
+                                            value += '%'
+                                        }
+                                        return label + ': ' + value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            const tabs = document.querySelectorAll('.tab-btn');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(item => {
+                        item.classList.remove('active-tab', 'text-blue-700', 'bg-blue-50');
+                        item.classList.add('text-gray-900', 'bg-white');
+                    });
+                    tab.classList.add('active-tab', 'text-blue-700', 'bg-blue-50');
+                    tab.classList.remove('text-gray-900', 'bg-white');
+                    
+                    const target = tab.getAttribute('data-tab');
+
+                    tabPanes.forEach(pane => {
+                        if (pane.id === target) {
+                            pane.classList.add('active');
+                        } else {
+                            pane.classList.remove('active');
+                        }
+                    });
+
+                    document.getElementById('ai-diagnosis').style.display = 'none';
+                    document.getElementById('scheduling').style.display = 'none';
+                    document.getElementById('chatbot').style.display = 'none';
+                    document.getElementById(target).style.display = 'block';
+                });
+            });
+            document.getElementById('scheduling').style.display = 'none';
+            document.getElementById('chatbot').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
